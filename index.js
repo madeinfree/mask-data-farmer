@@ -132,13 +132,12 @@ app.listen(process.env.PORT || 53310, () => {
 let jobIsRun = false
 
 async function farmer() {
-  console.log('run the job')
-  data.length = 0
   const maskData = await axios({
     url: 'http://data.nhi.gov.tw/Datasets/Download.ashx?rid=A21030000I-D50001-001&l=https://data.nhi.gov.tw/resource/mask/maskdata.csv'
   }).then(r => r.data)
   const splitData = maskData.split('\n')
   // const fieldsLine = splitData[0].split(',').map(field => field.replace('\r', ''))
+  data.length = 0
   for(let i = 1; i < splitData.length - 2; i++) {
     data.push({
       code: splitData[i].split(',')[0],
