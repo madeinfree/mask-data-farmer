@@ -135,7 +135,6 @@ async function farmer() {
   const maskData = await axios({
     url: 'http://data.nhi.gov.tw/Datasets/Download.ashx?rid=A21030000I-D50001-001&l=https://data.nhi.gov.tw/resource/mask/maskdata.csv'
   }).then(r => r.data)
-  console.log(maskData)
   const splitData = maskData.split('\n')
   // const fieldsLine = splitData[0].split(',').map(field => field.replace('\r', ''))
   const newData = []
