@@ -39,6 +39,7 @@ const resolvers = {
 };
 
 const server = new ApolloServer({
+  playground: true,
   cors: true,
   typeDefs,
   resolvers
@@ -122,7 +123,7 @@ app.get('/', (req, res) => {
   res.status(200).send(html)
 })
 
-server.applyMiddleware({ app });
+server.applyMiddleware({app });
 
 app.listen(process.env.PORT || 53310, () => {
   console.log('Server is running.')
