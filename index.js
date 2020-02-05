@@ -2,7 +2,7 @@ const express = require('express');
 const { ApolloServer, gql } = require('apollo-server-express');
 const axios = require('axios')
 
-let data = []
+let cacheData = []
 
 const typeDefs = gql`
   type Query {
@@ -29,7 +29,7 @@ const resolvers = {
   Query: {
     getMasks: () => {
       return {
-        payload: data,
+        payload: cacheData,
         status: 200,
         message: 'Success',
         errors: null
@@ -137,9 +137,9 @@ async function farmer() {
   }).then(r => r.data)
   const splitData = maskData.split('\n')
   // const fieldsLine = splitData[0].split(',').map(field => field.replace('\r', ''))
-  data.length = 0
+  const newData = []
   for(let i = 1; i < splitData.length - 2; i++) {
-    data.push({
+    newData.push({
       code: splitData[i].split(',')[0],
       name: splitData[i].split(',')[1],
       address: splitData[i].split(',')[2],
@@ -149,6 +149,7 @@ async function farmer() {
       updated_at: splitData[i].split(',')[6].replace('\r', ''),
     })
   }
+  cacheData = newData
   jobIsRun = false
 }
 
