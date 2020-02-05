@@ -149,6 +149,7 @@ async function farmer() {
       updated_at: splitData[i].split(',')[6].replace('\r', ''),
     })
   }
+  console.log(newData)
   cacheData = newData
   jobIsRun = false
 }
