@@ -132,6 +132,7 @@ app.listen(process.env.PORT || 53310, () => {
 let jobIsRun = false
 
 async function farmer() {
+  console.log('run the job')
   data.length = 0
   const maskData = await axios({
     url: 'http://data.nhi.gov.tw/Datasets/Download.ashx?rid=A21030000I-D50001-001&l=https://data.nhi.gov.tw/resource/mask/maskdata.csv'
