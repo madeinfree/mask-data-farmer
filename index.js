@@ -55,13 +55,13 @@ const app = express();
 
 const html = `<html>
   <head>
-    <title>健保特約機構口罩剩餘數量明細清單 - GraphQL開放版</title>
+    <title>健保特約機構口罩剩餘數量明細清單 - GraphQL/Restful 開放版</title>
     <meta property="og:title" content="健保特約機構口罩剩餘數量明細清單 - GraphQL/Restful 開放版" />
     <meta property="og:description" content="政府公開資料可直接使用於 website cline 端的 GraphQL/Restful 開放版" />
     <meta property="og:image" content="https://i.imgur.com/vu5Gs8d.png" />
   </head>
   <body>
-    <h1 style='text-align: center;'>健保特約機構口罩剩餘數量明細清單 - GraphQL開放版</h1>
+    <h1 style='text-align: center;'>健保特約機構口罩剩餘數量明細清單 - GraphQL/Restful 開放版</h1>
     <div style='text-align: center;'>GraphQL API Endpoint: <a href='/graphql'>/graphql</a></div>
     <div style='text-align: center;'>Restful API Endpoint: <a href='/restful/getMasks'>/restful/getMasks</a></div>
     <div style='display: flex; justify-content: space-around;'>
