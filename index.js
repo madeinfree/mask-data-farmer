@@ -22,6 +22,7 @@ const typeDefs = gql`
     address: String
     phone: String
     location: Location
+    business_hours: [String]
     adult_count: Int
     child_count: Int
     updated_at: String
@@ -187,6 +188,7 @@ async function farmer() {
           lon: points.features[i].geometry.coordinates[0],
           lat: points.features[i].geometry.coordinates[1],
         }
+        mask['business_hours'] = points.features[i].properties.available.split('、')
         break;
       }
     }
