@@ -56,13 +56,14 @@ const app = express();
 const html = `<html>
   <head>
     <title>健保特約機構口罩剩餘數量明細清單 - GraphQL開放版</title>
-    <meta property="og:title" content="健保特約機構口罩剩餘數量明細清單 - GraphQL開放版" />
-    <meta property="og:description" content="政府公開資料可直接使用於 website cline 端的 GraphQL 開放版" />
+    <meta property="og:title" content="健保特約機構口罩剩餘數量明細清單 - GraphQL/Restful 開放版" />
+    <meta property="og:description" content="政府公開資料可直接使用於 website cline 端的 GraphQL/Restful 開放版" />
     <meta property="og:image" content="https://i.imgur.com/vu5Gs8d.png" />
   </head>
   <body>
     <h1 style='text-align: center;'>健保特約機構口罩剩餘數量明細清單 - GraphQL開放版</h1>
-    <div style='text-align: center;'>Endpoint: <a href='/graphql'>/graphql</a></div>
+    <div style='text-align: center;'>GraphQL API Endpoint: <a href='/graphql'>/graphql</a></div>
+    <div style='text-align: center;'>Restful API Endpoint: <a href='/restful/getMasks'>/restful/getMasks</a></div>
     <div style='display: flex; justify-content: space-around;'>
       <div>
         <h2 style='text-align: center;'>Query</h2>
@@ -111,13 +112,17 @@ const html = `<html>
               "getMasks": {
                 "payload": [
                   {
-                    "code": "1234567890",
-                    "name": "範例藥局1",
-                    "address": "臺北市大安區範例路一段1號",
-                    "phone": "02-12345671",
-                    "adult_count": 30,
-                    "child_count": 20,
-                    "updated_at": "2020/02/04 18:30"
+                    "code": "0617060018",
+                    "name": "臺中榮民總醫院",
+                    "address": "台中市西屯區臺灣大道４段 １６５０號",
+                    "phone": "(04)23592525",
+                    "location": {
+                      "lat": "24.184299",
+                      "lon": "120.604647"
+                    },
+                    "adult_count": 200,
+                    "child_count": 50,
+                    "updated_at": "2020/02/06 09:00:03"
                   },
                   {
                     ...
@@ -194,5 +199,5 @@ setInterval(() => {
   if (jobIsRun) return
   jobIsRun = true
   farmer()
-}, 30000)
+}, 600000)
 farmer()
