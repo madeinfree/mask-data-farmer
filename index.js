@@ -13,6 +13,7 @@ const typeDefs = gql`
   }
   type MaskDataPayload {
     payload: [Mask]
+    total: Int
     message: String
     status: String
     errors: [String]
@@ -36,9 +37,23 @@ const typeDefs = gql`
 
 const resolvers = {
   Query: {
-    getMasks: () => {
+    getMasks: (_, args) => {
+      const cacheTotal = cacheData.length
+      const { offset = 0, limit = cacheTotal } = args
+      if (offset > cacheTotal) {
+        return {
+          total: cacheTotal,
+          status: 200,
+          message: 'Too Large',
+          errors: [
+            'offset params is too large than data length.',
+            'total data is ' + cacheTotal
+          ]
+        }
+      }
       return {
         payload: cacheData,
+        total: cacheTotal,
         status: 200,
         message: 'Success',
         errors: null
@@ -58,16 +73,16 @@ const app = express();
 
 const html = `<html>
   <head>
-    <title>健保特約機構口罩剩餘數量明細清單 - GraphQL/Restful 開放版</title>
-    <meta property="og:title" content="健保特約機構口罩剩餘數量明細清單 - GraphQL/Restful 開放版" />
-    <meta property="og:description" content="政府公開資料可直接使用於 website cline 端的 GraphQL/Restful 開放版" />
+    <title>健保特約機構口罩剩餘數量明細清單 - GraphQL/JSON 開放版</title>
+    <meta property="og:title" content="健保特約機構口罩剩餘數量明細清單 - GraphQL/JSON 開放版" />
+    <meta property="og:description" content="政府公開資料可直接使用於 website cline 端的 GraphQL/JSON 開放版" />
     <meta property="og:image" content="https://i.imgur.com/vu5Gs8d.png" />
   </head>
   <body>
-    <h1 style='text-align: center;'>健保特約機構口罩剩餘數量明細清單 - GraphQL/Restful 開放版</h1>
+    <h1 style='text-align: center;'>健保特約機構口罩剩餘數量明細清單 - GraphQL/JSON 開放版</h1>
     <h3 style='text-align: center;'>更新頻率：每 10 分鐘整（00, 10, 20, 30, 40, 50）</h3>
     <div style='text-align: center;'>GraphQL API Endpoint: <a href='/graphql'>/graphql</a></div>
-    <div style='text-align: center;'>Restful API Endpoint: <a href='/restful/getMasks'>/restful/getMasks</a></div>
+    <div style='text-align: center;'>JSON API Endpoint: <a href='/restful/getMasks'>/restful/getMasks</a></div>
     <div style='display: flex; justify-content: space-around;'>
       <div>
         <h2 style='text-align: center;'>Query</h2>
