@@ -2,11 +2,13 @@ const express = require('express');
 const { ApolloServer, gql } = require('apollo-server-express');
 const axios = require('axios')
 
+const points = require('./info/points.json')
+
 let cacheData = []
 
 const typeDefs = gql`
   type Query {
-    getMasks(limit: Int, offset: Int): MaskDataPayload
+    getMasks(offset: Int, limit: Int): MaskDataPayload
   }
   type MaskDataPayload {
     payload: [Mask]
@@ -19,9 +21,14 @@ const typeDefs = gql`
     name: String
     address: String
     phone: String
+    location: Location
     adult_count: Int
     child_count: Int
     updated_at: String
+  }
+  type Location {
+    lat: String
+    lon: String
   }
 `
 
@@ -122,6 +129,14 @@ const html = `<html>
 app.get('/', (req, res) => {
   res.status(200).send(html)
 })
+app.get('/restful/getMasks', (req, res) => {
+  res.status(200).send({
+    payload: cacheData,
+    status: 200,
+    message: 'Success',
+    errors: null
+  })
+})
 
 server.applyMiddleware({app });
 
@@ -149,7 +164,17 @@ async function farmer() {
       updated_at: splitData[i].split(',')[6].replace('\r', ''),
     })
   }
-  console.log(newData)
+  newData.forEach(mask => {
+    for(let i = 0; i < points.features.length; i++) {
+      if (mask.name === points.features[i].properties.name) {
+        mask['location'] = {
+          lon: points.features[i].geometry.coordinates[0],
+          lat: points.features[i].geometry.coordinates[1],
+        }
+        break;
+      }
+    }
+  })
   cacheData = newData
   jobIsRun = false
 }
@@ -158,5 +183,5 @@ setInterval(() => {
   if (jobIsRun) return
   jobIsRun = true
   farmer()
-}, 10000)
+}, 30000)
 farmer()
