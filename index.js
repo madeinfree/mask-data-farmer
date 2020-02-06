@@ -1,5 +1,6 @@
 const express = require('express');
 const { ApolloServer, gql } = require('apollo-server-express');
+const compression = require('compression')
 const axios = require('axios')
 const CronJob = require('cron').CronJob;
 
@@ -70,6 +71,7 @@ const server = new ApolloServer({
   resolvers
 });
 const app = express();
+app.use(compression())
 
 const html = `<html>
   <head>
