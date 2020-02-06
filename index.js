@@ -1,6 +1,7 @@
 const express = require('express');
 const { ApolloServer, gql } = require('apollo-server-express');
 const axios = require('axios')
+const CronJob = require('cron').CronJob;
 
 const points = require('./info/points.json')
 
@@ -63,6 +64,7 @@ const html = `<html>
   </head>
   <body>
     <h1 style='text-align: center;'>健保特約機構口罩剩餘數量明細清單 - GraphQL/Restful 開放版</h1>
+    <h3 style='text-align: center;'>更新頻率：每 10 分鐘整（00, 10, 20, 30, 40, 50）</h3>
     <div style='text-align: center;'>GraphQL API Endpoint: <a href='/graphql'>/graphql</a></div>
     <div style='text-align: center;'>Restful API Endpoint: <a href='/restful/getMasks'>/restful/getMasks</a></div>
     <div style='display: flex; justify-content: space-around;'>
@@ -188,8 +190,6 @@ app.listen(process.env.PORT || 53310, () => {
   console.log('Server is running on port ' + process.env.PORT)
 })
 
-let jobIsRun = false
-
 async function farmer() {
   const maskData = await axios({
     url: 'http://data.nhi.gov.tw/Datasets/Download.ashx?rid=A21030000I-D50001-001&l=https://data.nhi.gov.tw/resource/mask/maskdata.csv'
@@ -221,12 +221,10 @@ async function farmer() {
     }
   })
   cacheData = newData
-  jobIsRun = false
 }
 
-setInterval(() => {
-  if (jobIsRun) return
-  jobIsRun = true
+var job = new CronJob('*/10 * * * *', function() {
   farmer()
-}, 600000)
+}, null, true);
+job.start();
 farmer()
