@@ -239,7 +239,7 @@ async function farmer() {
   cacheData = newData
 }
 
-var job = new CronJob('*/1 * * * *', function() {
+var job = new CronJob('* * * * *', function() {
   farmer()
 }, null, true);
 job.start();
