@@ -1,5 +1,6 @@
 const express = require('express');
 const { ApolloServer, gql } = require('apollo-server-express');
+const { createRateLimitTypeDef, createRateLimitDirective } = require('graphql-rate-limit-directive')
 const compression = require('compression')
 const axios = require('axios')
 const CronJob = require('cron').CronJob;
@@ -7,10 +8,16 @@ const CronJob = require('cron').CronJob;
 const points = require('./info/points.json')
 
 let cacheData = []
+let queueData = {}
 
 const typeDefs = gql`
   type Query {
-    getMasks(offset: Int, limit: Int): MaskDataPayload
+    getMasks: MaskDataPayload
+    quote: String
+  }
+  type Mutation @rateLimit(limit: 30, duration: 30) {
+    updateQueueNumber(code: String, number: Int): UpdateQueueNumberPayload
+    quote: String
   }
   type MaskDataPayload {
     payload: [Mask]
@@ -28,7 +35,13 @@ const typeDefs = gql`
     business_hours: [String]
     adult_count: Int
     child_count: Int
+    queue_number: Int
     updated_at: String
+  }
+  type UpdateQueueNumberPayload {
+    message: String
+    status: String
+    errors: [String]
   }
   type Location {
     lat: String
@@ -40,18 +53,6 @@ const resolvers = {
   Query: {
     getMasks: (_, args) => {
       const cacheTotal = cacheData.length
-      const { offset = 0, limit = cacheTotal } = args
-      if (offset > cacheTotal) {
-        return {
-          total: cacheTotal,
-          status: 200,
-          message: 'Too Large',
-          errors: [
-            'offset params is too large than data length.',
-            'total data is ' + cacheTotal
-          ]
-        }
-      }
       return {
         payload: cacheData,
         total: cacheTotal,
@@ -59,16 +60,34 @@ const resolvers = {
         message: 'Success',
         errors: null
       }
-    }
+    },
+    quote: () =>
+      'The future is something which everyone reaches at the rate of sixty minutes an hour, whatever he does, whoever he is. ― C.S. Lewis',
   },
+  Mutation: {
+    updateQueueNumber: (_, args) => {
+      const { code, number} = args
+      queueData[code] = number
+      return {
+        status: 204,
+        message: 'Success',
+        errors: null
+      }
+    },
+    quote: () =>
+      'The future is something which everyone reaches at the rate of sixty minutes an hour, whatever he does, whoever he is. ― C.S. Lewis',
+  }
 };
 
 const server = new ApolloServer({
   introspection: true,
   playground: true,
   cors: true,
-  typeDefs,
-  resolvers
+  typeDefs: [createRateLimitTypeDef(), typeDefs],
+  resolvers,
+  schemaDirectives: {
+    rateLimit: createRateLimitDirective(),
+  }
 });
 const app = express();
 app.use(compression())
@@ -87,7 +106,7 @@ const html = `<html>
     <div style='text-align: center;'>JSON API Endpoint: <a href='/restful/getMasks'>/restful/getMasks</a></div>
     <div style='display: flex; justify-content: space-around;'>
       <div>
-        <h2 style='text-align: center;'>Query</h2>
+        <h2 style='text-align: center;'>請求所有機構資訊</h2>
         <pre>
           query {
             getMasks {
@@ -119,6 +138,9 @@ const html = `<html>
                 ## 兒童口罩剩餘數
                 child_count
 
+                ## 民眾回報號碼牌號碼
+                queue_number
+
                 ## 來源資料時間
                 updated_at
               }
@@ -130,7 +152,7 @@ const html = `<html>
         </pre>
       </div>
       <div>
-        <h2 style='text-align: center;'>Response</h2>
+        <h2 style='text-align: center;'>回應</h2>
         <pre>
           {
             "data": {
@@ -170,6 +192,7 @@ const html = `<html>
                     ],
                     "adult_count": 188,
                     "child_count": 46,
+                    "queue_number": 15,
                     "updated_at": "2020/02/06 09:00:03"
                   },
                   {
@@ -182,6 +205,34 @@ const html = `<html>
                 "message": "Success",
                 "errors": null,
                 "status": "200"
+              }
+            }
+          }
+        </pre>
+      </div>
+      <div>
+        <h2 style='text-align: center;'>請求增加機構排隊號碼(rate limit: 30time/30sec)</h2>
+        <pre>
+          mutation {
+            ## code 機構代碼
+            ## number 回報號碼牌號碼
+            updateQueueNumber(code: "0145080011", number: 30) {
+              message
+              errors
+              status
+            }
+          }
+        </pre>
+      </div>
+      <div>
+        <h2 style='text-align: center;'>回應</h2>
+        <pre>
+          {
+            "data": {
+              "updateQueueNumber": {
+                "message": "Success",
+                "errors": null,
+                "status": "204"
               }
             }
           }
@@ -213,16 +264,17 @@ async function farmer() {
     url: 'http://data.nhi.gov.tw/Datasets/Download.ashx?rid=A21030000I-D50001-001&l=https://data.nhi.gov.tw/resource/mask/maskdata.csv'
   }).then(r => r.data)
   const splitData = maskData.split('\n')
-  // const fieldsLine = splitData[0].split(',').map(field => field.replace('\r', ''))
   const newData = []
   for(let i = 1; i < splitData.length - 2; i++) {
+    const code = splitData[i].split(',')[0]
     newData.push({
-      code: splitData[i].split(',')[0],
+      code,
       name: splitData[i].split(',')[1],
       address: splitData[i].split(',')[2],
       phone: splitData[i].split(',')[3],
       adult_count: splitData[i].split(',')[4],
       child_count: splitData[i].split(',')[5],
+      queue_number: queueData[code] || null,
       updated_at: splitData[i].split(',')[6].replace('\r', ''),
     })
   }
